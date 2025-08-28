@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Universal installer for sol-sign
+# Universal installer for go-sol-sign
 # Detects OS and architecture, downloads and installs appropriate binary
 
 set -e
@@ -64,7 +64,7 @@ download_file() {
 
 # Install function
 install_sol_sign() {
-    echo -e "${GREEN}🚀 Installing sol-sign v${VERSION}${NC}"
+    echo -e "${GREEN}🚀 Installing go-sol-sign v${VERSION}${NC}"
     echo ""
     
     # Create temporary directory
@@ -77,14 +77,14 @@ install_sol_sign() {
     
     # Determine file extension
     local extension="tar.gz"
-    local binary_name="sol-sign"
+    local binary_name="go-sol-sign"
     if [[ "$platform" == *"windows"* ]]; then
         extension="zip"
-        binary_name="sol-sign.exe"
+        binary_name="go-sol-sign.exe"
     fi
     
     # Download archive
-    local archive_name="sol-sign_${VERSION}_${platform}.${extension}"
+    local archive_name="go-sol-sign_${VERSION}_${platform}.${extension}"
     local download_url="${BASE_URL}/${archive_name}"
     
     echo -e "${BLUE}Downloading $archive_name...${NC}"
@@ -107,7 +107,7 @@ install_sol_sign() {
     
     # Install the binary
     local install_dir="/usr/local/bin"
-    local install_path="${install_dir}/sol-sign"
+    local install_path="${install_dir}/go-sol-sign"
     
     echo -e "${BLUE}Installing to $install_path...${NC}"
     
@@ -126,28 +126,47 @@ install_sol_sign() {
     rm -rf "$tmp_dir"
     
     echo ""
-    echo -e "${GREEN}✅ sol-sign installed successfully!${NC}"
+    echo -e "${GREEN}✅ go-sol-sign installed successfully!${NC}"
     echo ""
     echo -e "${BLUE}Usage:${NC}"
-    echo "  sol-sign -keypair <path> -message <message>"
+    echo "  go-sol-sign -keypair <path> -message <message>"
     echo ""
     echo -e "${BLUE}Examples:${NC}"
-    echo "  sol-sign -keypair ~/.config/solana/id.json -message \"Hello World\""
-    echo "  sol-sign -version"
+    echo "  go-sol-sign -keypair ~/.config/solana/id.json -message \"Hello World\""
+    echo "  go-sol-sign -version"
     echo ""
     echo -e "${BLUE}Documentation:${NC}"
     echo "  https://github.com/${REPO}"
 }
 
-# Check if sol-sign is already installed
-if command -v sol-sign >/dev/null 2>&1; then
-    current_version=$(sol-sign -version 2>&1 | head -n1 | cut -d' ' -f2 || echo "unknown")
-    echo -e "${YELLOW}sol-sign is already installed (version: $current_version)${NC}"
+# Check if go-sol-sign is already installed
+if command -v go-sol-sign >/dev/null 2>&1; then
+    current_version=$(go-sol-sign -version 2>&1 | head -n1 | cut -d' ' -f2 || echo "unknown")
+    echo -e "${YELLOW}go-sol-sign is already installed (version: $current_version)${NC}"
     echo -e "${YELLOW}This will update it to version v${VERSION}${NC}"
     echo ""
     read -p "Continue? (y/N): " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+        echo "Installation cancelled."
+        exit 0
+    fi
+# Also check for old sol-sign installation and offer to remove it
+elif command -v sol-sign >/dev/null 2>&1; then
+    echo -e "${YELLOW}Found old 'sol-sign' installation${NC}"
+    echo -e "${YELLOW}This installer will install the new 'go-sol-sign' binary${NC}"
+    echo ""
+    read -p "Remove old 'sol-sign' and install 'go-sol-sign'? (y/N): " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        echo -e "${BLUE}Removing old sol-sign...${NC}"
+        if [[ -w "/usr/local/bin" ]]; then
+            rm -f /usr/local/bin/sol-sign
+        else
+            sudo rm -f /usr/local/bin/sol-sign
+        fi
+        echo -e "${GREEN}Old sol-sign removed${NC}"
+    else
         echo "Installation cancelled."
         exit 0
     fi
