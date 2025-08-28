@@ -50,9 +50,15 @@ go-sol-sign -keypair <path-to-keypair> -message <message>
 
 ### Examples
 
-Sign a message with base64 output (default):
+Sign a message with base58 output (default):
 ```bash
 go-sol-sign -keypair ~/.config/solana/id.json -message "Hello World"
+# Output: KYGBc3hBpYrvF36QP63fDojCwaJjkQXH8s8j1LPA98iW5C2z1hP3YASQfa61U1nPAD42Jks3kURbR1iK1G1dz5U
+```
+
+Sign a message with base64 output:
+```bash
+go-sol-sign -keypair ~/.config/solana/id.json -message "Hello World" -format base64
 # Output: GY/HTLWHgdOPoxFpTz9X1BpfNJtztRzj0gtUxkS0daX4uuC3/YhubdYbJU1tKNcK3Q3FP7XZ3a3nyVarRObuDA==
 ```
 
@@ -78,7 +84,7 @@ go-sol-sign -version
 |--------|-------------|---------|
 | `-keypair` | Path to Solana keypair JSON file | *required* |
 | `-message` | Message to sign | *required* |
-| `-format` | Output format: `base64` or `hex` | `base64` |
+| `-format` | Output format: `base58`, `base64`, or `hex` | `base58` |
 | `-verbose` | Enable verbose output | `false` |
 | `-version` | Show version information | `false` |
 

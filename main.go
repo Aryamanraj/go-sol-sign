@@ -4,7 +4,7 @@
 // sign messages using Ed25519 private keys in the standard Solana keypair format.
 //
 // Usage:
-//   go-sol-sign -keypair <path> -message <message> [-format base64|hex|base58]
+//   go-sol-sign -keypair <path> -message <message> [-format base58|base64|hex]
 //
 // Examples:
 //   go-sol-sign -keypair ~/.config/solana/id.json -message "Hello World"
@@ -41,7 +41,7 @@ func main() {
 		privateKey   = flag.String("private-key", "", "Private key as base58 string (alternative to -keypair)")
 		message      = flag.String("message", "", "Message to sign")
 		messageFile  = flag.String("message-file", "", "Path to file containing message to sign")
-		outputFormat = flag.String("format", "base64", "Output format: base64, hex, base58")
+		outputFormat = flag.String("format", "base58", "Output format: base58, base64, hex")
 		version      = flag.Bool("version", false, "Show version information")
 		verbose      = flag.Bool("verbose", false, "Enable verbose output")
 	)
@@ -152,7 +152,7 @@ func main() {
 	case "base58":
 		fmt.Println(base58Encode(signature))
 	default:
-		log.Fatalf("Unknown format: %s. Supported formats: base64, hex, base58", *outputFormat)
+		log.Fatalf("Unknown format: %s. Supported formats: base58, base64, hex", *outputFormat)
 	}
 }
 
@@ -183,7 +183,7 @@ func printUsage() {
 	fmt.Println("  -message-file string Path to file containing message")
 	fmt.Println("")
 	fmt.Println("Other Options:")
-	fmt.Println("  -format string       Output format: base64, hex, base58 (default: base64)")
+	fmt.Println("  -format string       Output format: base58, base64, hex (default: base58)")
 	fmt.Println("  -verbose             Enable verbose output")
 	fmt.Println("  -version             Show version information")
 	fmt.Println("")
