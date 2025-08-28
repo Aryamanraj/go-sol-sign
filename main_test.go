@@ -294,54 +294,26 @@ func TestBase58Decode(t *testing.T) {
 	}
 }
 
-// Helper function to encode bytes to base58 (for testing)
-func base58Encode(data []byte) string {
-	const alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-	
-	if len(data) == 0 {
-		return ""
+// TestEscapeSequenceProcessing tests that escape sequences are properly converted
+func TestEscapeSequenceProcessing(t *testing.T) {
+	tests := []struct {
+		input    string
+		expected string
+	}{
+		{"Hello\\nWorld", "Hello\nWorld"},
+		{"Hello\\tWorld", "Hello\tWorld"},
+		{"Hello\\rWorld", "Hello\rWorld"},
+		{"Hello\\\\World", "Hello\\World"},
+		{"Hello\\\"World", "Hello\"World"},
+		{"Hello\\'World", "Hello'World"},
+		{"No escapes", "No escapes"},
+		{"Multiple\\nlines\\nhere", "Multiple\nlines\nhere"},
 	}
 	
-	// Convert to big integer
-	var result []byte
-	
-	// Count leading zeros
-	leadingZeros := 0
-	for i := 0; i < len(data) && data[i] == 0; i++ {
-		leadingZeros++
-	}
-	
-	// Convert
-	input := make([]byte, len(data))
-	copy(input, data)
-	
-	for len(input) > 0 {
-		// Find first non-zero
-		i := 0
-		for i < len(input) && input[i] == 0 {
-			i++
+	for _, test := range tests {
+		result := processEscapeSequences(test.input)
+		if result != test.expected {
+			t.Errorf("processEscapeSequences(%q) = %q, want %q", test.input, result, test.expected)
 		}
-		input = input[i:]
-		
-		if len(input) == 0 {
-			break
-		}
-		
-		// Divide by 58
-		remainder := 0
-		for i := 0; i < len(input); i++ {
-			temp := remainder*256 + int(input[i])
-			input[i] = byte(temp / 58)
-			remainder = temp % 58
-		}
-		
-		result = append([]byte{alphabet[remainder]}, result...)
 	}
-	
-	// Add leading 1s for leading zeros
-	for i := 0; i < leadingZeros; i++ {
-		result = append([]byte{'1'}, result...)
-	}
-	
-	return string(result)
 }

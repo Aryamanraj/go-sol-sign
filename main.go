@@ -4,11 +4,12 @@
 // sign messages using Ed25519 private keys in the standard Solana keypair format.
 //
 // Usage:
-//   go-sol-sign -keypair <path> -message <message> [-format base64|hex]
+//   go-sol-sign -keypair <path> -message <message> [-format base64|hex|base58]
 //
 // Examples:
 //   go-sol-sign -keypair ~/.config/solana/id.json -message "Hello World"
 //   go-sol-sign -keypair ./keypair.json -message "Test" -format hex
+//   go-sol-sign -private-key "base58key" -message "Test" -format base58
 package main
 
 import (
@@ -40,7 +41,7 @@ func main() {
 		privateKey   = flag.String("private-key", "", "Private key as base58 string (alternative to -keypair)")
 		message      = flag.String("message", "", "Message to sign")
 		messageFile  = flag.String("message-file", "", "Path to file containing message to sign")
-		outputFormat = flag.String("format", "base64", "Output format: base64, hex")
+		outputFormat = flag.String("format", "base64", "Output format: base64, hex, base58")
 		version      = flag.Bool("version", false, "Show version information")
 		verbose      = flag.Bool("verbose", false, "Enable verbose output")
 	)
@@ -76,7 +77,7 @@ func main() {
 	}
 
 	if *message != "" {
-		messageText = *message
+		messageText = processEscapeSequences(*message)
 	} else if *messageFile != "" {
 		data, err := os.ReadFile(*messageFile)
 		if err != nil {
@@ -148,9 +149,24 @@ func main() {
 		fmt.Println(base64.StdEncoding.EncodeToString(signature))
 	case "hex":
 		fmt.Println(hex.EncodeToString(signature))
+	case "base58":
+		fmt.Println(base58Encode(signature))
 	default:
-		log.Fatalf("Unknown format: %s. Supported formats: base64, hex", *outputFormat)
+		log.Fatalf("Unknown format: %s. Supported formats: base64, hex, base58", *outputFormat)
 	}
+}
+
+// processEscapeSequences converts escape sequences like \n, \t, etc. to actual characters
+func processEscapeSequences(input string) string {
+	// Handle common escape sequences
+	result := input
+	result = strings.ReplaceAll(result, "\\n", "\n")
+	result = strings.ReplaceAll(result, "\\t", "\t")
+	result = strings.ReplaceAll(result, "\\r", "\r")
+	result = strings.ReplaceAll(result, "\\\\", "\\")
+	result = strings.ReplaceAll(result, "\\\"", "\"")
+	result = strings.ReplaceAll(result, "\\'", "'")
+	return result
 }
 
 // printUsage displays usage information
@@ -167,7 +183,7 @@ func printUsage() {
 	fmt.Println("  -message-file string Path to file containing message")
 	fmt.Println("")
 	fmt.Println("Other Options:")
-	fmt.Println("  -format string       Output format: base64, hex (default: base64)")
+	fmt.Println("  -format string       Output format: base64, hex, base58 (default: base64)")
 	fmt.Println("  -verbose             Enable verbose output")
 	fmt.Println("  -version             Show version information")
 	fmt.Println("")
@@ -175,6 +191,7 @@ func printUsage() {
 	fmt.Printf("  %s -keypair ~/.config/solana/id.json -message \"Hello World\"\n", ToolName)
 	fmt.Printf("  %s -private-key 3yD2... -message \"Test\" -format hex\n", ToolName)
 	fmt.Printf("  %s -keypair ./keypair.json -message-file ./message.txt\n", ToolName)
+	fmt.Printf("  %s -private-key 3yD2... -message \"Test\" -format base58\n", ToolName)
 	fmt.Printf("  %s -version\n", ToolName)
 }
 
@@ -293,4 +310,47 @@ func base58Decode(s string) ([]byte, error) {
 	}
 	
 	return result, nil
+}
+
+// Simple base58 encoder for Solana signatures
+func base58Encode(input []byte) string {
+	const alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+	
+	if len(input) == 0 {
+		return ""
+	}
+	
+	// Count leading zeros
+	leadingZeros := 0
+	for i := 0; i < len(input) && input[i] == 0; i++ {
+		leadingZeros++
+	}
+	
+	// Convert to base58
+	var result []byte
+	for i := leadingZeros; i < len(input); i++ {
+		carry := int(input[i])
+		for j := 0; j < len(result); j++ {
+			carry += int(result[j]) * 256
+			result[j] = byte(carry % 58)
+			carry /= 58
+		}
+		
+		for carry > 0 {
+			result = append(result, byte(carry%58))
+			carry /= 58
+		}
+	}
+	
+	// Convert to alphabet characters
+	var encoded []byte
+	for i := 0; i < leadingZeros; i++ {
+		encoded = append(encoded, '1')
+	}
+	
+	for i := len(result) - 1; i >= 0; i-- {
+		encoded = append(encoded, alphabet[result[i]])
+	}
+	
+	return string(encoded)
 }
