@@ -36,13 +36,57 @@ jobs:
     - name: Run staticcheck
       run: staticcheck ./...
 
-  build:
+  auto-update-version:
     needs: test
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     
     steps:
     - uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        fetch-depth: 0
+    
+    - name: Get version
+      id: version
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/v}
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+        echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+    
+    - name: Update version in files
+      run: |
+        VERSION="${{ steps.version.outputs.VERSION }}"
+        
+        # Update main.go
+        sed -i "s/Version = \".*\"/Version = \"$VERSION\"/" main.go
+        
+        # Update build-release.sh
+        sed -i "s/VERSION=\".*\"/VERSION=\"$VERSION\"/" build-release.sh
+        
+        # Update install.sh
+        sed -i "s/VERSION=\".*\"/VERSION=\"$VERSION\"/" install.sh
+        
+        echo "Updated version to $VERSION in all files"
+    
+    - name: Commit version updates
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add main.go build-release.sh install.sh
+        git diff --staged --quiet || git commit -m "chore: auto-update version to ${{ steps.version.outputs.VERSION }}"
+        git push origin HEAD:main
+      continue-on-error: true
+
+  build:
+    needs: [test, auto-update-version]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: main  # Get the updated files from auto-update-version job
     
     - name: Set up Go
       uses: actions/setup-go@v4
@@ -51,41 +95,65 @@ jobs:
     
     - name: Get version
       id: version
-      run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+      run: |
+        VERSION=${GITHUB_REF#refs/tags/v}
+        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
+        echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
     
     - name: Build release
-      run: ./build-release.sh
+      run: |
+        chmod +x build-release.sh
+        ./build-release.sh
     
     - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{ github.ref }}
-        release_name: Release ${{ steps.version.outputs.VERSION }}
-        draft: false
-        prerelease: false
+        files: |
+          dist/*.tar.gz
+          dist/*.zip
+          dist/checksums.txt
         body: |
-          ## Sol-Sign ${{ steps.version.outputs.VERSION }}
+          ## go-sol-sign ${{ steps.version.outputs.TAG }}
           
           A lightweight command-line tool for signing messages with Solana keypairs.
           
-          ### Installation
+          ### Quick Install
+          
+          ```bash
+          curl -fsSL https://raw.githubusercontent.com/Aryamanraj/go-sol-sign/main/install.sh | bash
+          ```
+          
+          ### Manual Download
           
           Download the appropriate binary for your system:
           
-          - **Linux (x64)**: `sol-sign_${{ steps.version.outputs.VERSION }}_linux_amd64.tar.gz`
-          - **Linux (ARM64)**: `sol-sign_${{ steps.version.outputs.VERSION }}_linux_arm64.tar.gz`
-          - **macOS (Intel)**: `sol-sign_${{ steps.version.outputs.VERSION }}_darwin_amd64.tar.gz`
-          - **macOS (Apple Silicon)**: `sol-sign_${{ steps.version.outputs.VERSION }}_darwin_arm64.tar.gz`
-          - **Windows (x64)**: `sol-sign_${{ steps.version.outputs.VERSION }}_windows_amd64.zip`
-          - **Windows (ARM64)**: `sol-sign_${{ steps.version.outputs.VERSION }}_windows_arm64.zip`
+          - **Linux (x64)**: `go-sol-sign_${{ steps.version.outputs.VERSION }}_linux_amd64.tar.gz`
+          - **Linux (ARM64)**: `go-sol-sign_${{ steps.version.outputs.VERSION }}_linux_arm64.tar.gz`
+          - **macOS (Intel)**: `go-sol-sign_${{ steps.version.outputs.VERSION }}_darwin_amd64.tar.gz`
+          - **macOS (Apple Silicon)**: `go-sol-sign_${{ steps.version.outputs.VERSION }}_darwin_arm64.tar.gz`
+          - **Windows (x64)**: `go-sol-sign_${{ steps.version.outputs.VERSION }}_windows_amd64.zip`
+          - **Windows (ARM64)**: `go-sol-sign_${{ steps.version.outputs.VERSION }}_windows_arm64.zip`
           
           ### Usage
           
           ```bash
-          sol-sign -keypair <path> -message <message> [-format base64|hex]
+          go-sol-sign -keypair <path> -message <message> [-format base64|hex]
+          ```
+          
+          ### Examples
+          
+          ```bash
+          # Sign a message with base64 output
+          go-sol-sign -keypair ~/.config/solana/id.json -message "Hello World"
+          
+          # Sign with hex output
+          go-sol-sign -keypair ./keypair.json -message "Test" -format hex
+          
+          # Sign with private key string
+          go-sol-sign -private-key "base58-encoded-key" -message "Test"
+          
+          # Sign message from file
+          go-sol-sign -keypair ./keypair.json -message-file ./message.txt
           ```
           
           ### Verification
@@ -95,14 +163,6 @@ jobs:
           ```bash
           sha256sum -c checksums.txt
           ```
-    
-    - name: Upload Release Assets
-      run: |
-        for file in dist/*.tar.gz dist/*.zip dist/checksums.txt; do
-          if [ -f "$file" ]; then
-            echo "Uploading $file"
-            gh release upload ${{ steps.version.outputs.VERSION }} "$file"
-          fi
-        done
+        generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

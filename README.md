@@ -82,16 +82,16 @@ go-sol-sign -version
 | `-verbose` | Enable verbose output | `false` |
 | `-version` | Show version information | `false` |
 
-## 🔧 Building from Source
+## 🔧 Development
 
 ### Prerequisites
 - Go 1.21 or later
 
-### Build
+### Build from Source
 ```bash
 git clone https://github.com/Aryamanraj/go-sol-sign.git
 cd go-sol-sign
-go build -o sol-sign
+go build -o go-sol-sign
 ```
 
 ### Build for Multiple Platforms
@@ -99,13 +99,32 @@ go build -o sol-sign
 ./build-release.sh
 ```
 
-### Build Packages
+### Automated Releases
+
+This project uses automated releases. To create a new release:
+
+```bash
+# Use the release script (recommended)
+./release.sh 1.3.0
+
+# Or manually create a tag (triggers CI/CD)
+git tag v1.3.0
+git push origin v1.3.0
+```
+
+The CI/CD pipeline automatically:
+- Updates version numbers in all files
+- Builds binaries for all platforms  
+- Creates GitHub release with assets
+- Updates the install script to use the new version
+
+### Manual Packaging
 ```bash
 # Debian package
 ./packaging/deb/build-deb.sh
 
 # RPM package (requires rpmbuild)
-rpmbuild -ba packaging/rpm/sol-sign.spec
+rpmbuild -ba packaging/rpm/go-sol-sign.spec
 ```
 
 ## 🔑 Keypair Format

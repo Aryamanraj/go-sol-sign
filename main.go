@@ -27,7 +27,7 @@ import (
 
 const (
 	// Version of the go-sol-sign tool
-	Version = "1.1.0"
+	Version = "1.2.0"
 	
 	// Tool name and description
 	ToolName        = "go-sol-sign"

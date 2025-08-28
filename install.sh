@@ -5,7 +5,7 @@
 
 set -e
 
-VERSION="1.0.0"
+VERSION="1.2.0"
 REPO="Aryamanraj/go-sol-sign"
 BASE_URL="https://github.com/${REPO}/releases/download/v${VERSION}"
 
