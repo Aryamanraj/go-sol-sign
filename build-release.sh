@@ -6,7 +6,7 @@
 set -e
 
 VERSION="1.0.0"
-APP_NAME="sol-sign"
+APP_NAME="go-sol-sign"
 PLATFORMS=(
     "linux/amd64"
     "linux/arm64"

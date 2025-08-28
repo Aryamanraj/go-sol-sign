@@ -4,11 +4,11 @@
 // sign messages using Ed25519 private keys in the standard Solana keypair format.
 //
 // Usage:
-//   sol-sign -keypair <path> -message <message> [-format base64|hex]
+//   go-sol-sign -keypair <path> -message <message> [-format base64|hex]
 //
 // Examples:
-//   sol-sign -keypair ~/.config/solana/id.json -message "Hello World"
-//   sol-sign -keypair ./keypair.json -message "Test" -format hex
+//   go-sol-sign -keypair ~/.config/solana/id.json -message "Hello World"
+//   go-sol-sign -keypair ./keypair.json -message "Test" -format hex
 package main
 
 import (
@@ -26,11 +26,11 @@ import (
 )
 
 const (
-	// Version of the sol-sign tool
+	// Version of the go-sol-sign tool
 	Version = "1.1.0"
 	
 	// Tool name and description
-	ToolName        = "sol-sign"
+	ToolName        = "go-sol-sign"
 	ToolDescription = "Sign messages with Solana keypairs"
 )
 

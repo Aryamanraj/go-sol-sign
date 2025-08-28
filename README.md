@@ -18,24 +18,24 @@ curl -fsSL https://raw.githubusercontent.com/Aryamanraj/go-sol-sign/main/install
 #### Homebrew (macOS/Linux)
 ```bash
 brew tap Aryamanraj/tap
-brew install sol-sign
+brew install go-sol-sign
 ```
 
 #### Ubuntu/Debian
 ```bash
-wget https://github.com/Aryamanraj/go-sol-sign/releases/download/v1.0.0/sol-sign_1.0.0_linux_amd64.deb
-sudo dpkg -i sol-sign_1.0.0_linux_amd64.deb
+wget https://github.com/Aryamanraj/go-sol-sign/releases/download/v1.0.0/go-sol-sign_1.0.0_linux_amd64.deb
+sudo dpkg -i go-sol-sign_1.0.0_linux_amd64.deb
 ```
 
 #### Arch Linux (AUR)
 ```bash
-yay -S sol-sign
+yay -S go-sol-sign
 ```
 
 #### Fedora/CentOS/RHEL
 ```bash
-wget https://github.com/Aryamanraj/go-sol-sign/releases/download/v1.0.0/sol-sign-1.0.0-1.x86_64.rpm
-sudo rpm -i sol-sign-1.0.0-1.x86_64.rpm
+wget https://github.com/Aryamanraj/go-sol-sign/releases/download/v1.0.0/go-sol-sign-1.0.0-1.x86_64.rpm
+sudo rpm -i go-sol-sign-1.0.0-1.x86_64.rpm
 ```
 
 ### Manual Download
@@ -45,31 +45,31 @@ Download pre-built binaries from the [releases page](https://github.com/Aryamanr
 
 ### Basic Usage
 ```bash
-sol-sign -keypair <path-to-keypair> -message <message>
+go-sol-sign -keypair <path-to-keypair> -message <message>
 ```
 
 ### Examples
 
 Sign a message with base64 output (default):
 ```bash
-sol-sign -keypair ~/.config/solana/id.json -message "Hello World"
+go-sol-sign -keypair ~/.config/solana/id.json -message "Hello World"
 # Output: GY/HTLWHgdOPoxFpTz9X1BpfNJtztRzj0gtUxkS0daX4uuC3/YhubdYbJU1tKNcK3Q3FP7XZ3a3nyVarRObuDA==
 ```
 
 Sign a message with hex output:
 ```bash
-sol-sign -keypair ./my-keypair.json -message "Authentication token" -format hex
+go-sol-sign -keypair ./my-keypair.json -message "Authentication token" -format hex
 # Output: c373f2e5c6e640209f5457290b784b8a4923e5ca8af31cb6033513375123e2cf7bbab791b6dcf9ff245f361d76637eee182ccd6a23453215e9581bb81bbfe500
 ```
 
 Enable verbose output:
 ```bash
-sol-sign -keypair ./keypair.json -message "Test" -verbose
+go-sol-sign -keypair ./keypair.json -message "Test" -verbose
 ```
 
 Show version information:
 ```bash
-sol-sign -version
+go-sol-sign -version
 ```
 
 ### Command Options
