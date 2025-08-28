@@ -243,42 +243,52 @@ func loadKeypairFromString(privateKeyStr string) (ed25519.PrivateKey, error) {
 func base58Decode(s string) ([]byte, error) {
 	const alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 	
-	// Create a map for quick lookup
+	// Create decode map
 	decode := make(map[byte]int)
 	for i, c := range alphabet {
 		decode[byte(c)] = i
 	}
 	
-	// Convert to big integer
-	var result []byte
-	multi := 1
+	// Handle empty string
+	if len(s) == 0 {
+		return []byte{}, nil
+	}
 	
-	for i := len(s) - 1; i >= 0; i-- {
+	// Count leading 1s
+	leadingOnes := 0
+	for i := 0; i < len(s) && s[i] == '1'; i++ {
+		leadingOnes++
+	}
+	
+	// Convert base58 to big integer (in reverse byte order)
+	var result []byte
+	for i := leadingOnes; i < len(s); i++ {
 		char := s[i]
 		value, ok := decode[char]
 		if !ok {
 			return nil, fmt.Errorf("invalid character '%c' in base58 string", char)
 		}
 		
-		// Add value * multi to result
-		carry := value * multi
-		for j := 0; j < len(result) || carry > 0; j++ {
-			if j >= len(result) {
-				result = append(result, 0)
-			}
+		// Multiply result by 58 and add current digit
+		carry := value
+		for j := 0; j < len(result); j++ {
 			carry += int(result[j]) * 58
 			result[j] = byte(carry % 256)
 			carry /= 256
 		}
-		multi *= 58
+		
+		for carry > 0 {
+			result = append(result, byte(carry%256))
+			carry /= 256
+		}
 	}
 	
-	// Handle leading zeros
-	for i := 0; i < len(s) && s[i] == '1'; i++ {
+	// Add leading zeros for leading 1s
+	for i := 0; i < leadingOnes; i++ {
 		result = append(result, 0)
 	}
 	
-	// Reverse the result
+	// Reverse to get correct byte order
 	for i := 0; i < len(result)/2; i++ {
 		result[i], result[len(result)-1-i] = result[len(result)-1-i], result[i]
 	}
