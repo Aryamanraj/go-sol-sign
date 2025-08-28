@@ -1,0 +1,53 @@
+.TH SOL-SIGN 1 "2025-08-28" "sol-sign 1.0.0" "User Commands"
+.SH NAME
+sol-sign \- sign messages with Solana keypairs
+.SH SYNOPSIS
+.B sol-sign
+\-keypair \fIPATH\fR \-message \fIMESSAGE\fR [\-format \fIFORMAT\fR] [\-verbose] [\-version]
+.SH DESCRIPTION
+.B sol-sign
+is a command-line tool for cryptographically signing messages using Ed25519
+private keys in the standard Solana keypair format.
+.SH OPTIONS
+.TP
+\fB\-keypair\fR \fIPATH\fR
+Path to Solana keypair JSON file (required)
+.TP
+\fB\-message\fR \fIMESSAGE\fR
+Message to sign (required)
+.TP
+\fB\-format\fR \fIFORMAT\fR
+Output format: base64 or hex (default: base64)
+.TP
+\fB\-verbose\fR
+Enable verbose output
+.TP
+\fB\-version\fR
+Show version information
+.SH EXAMPLES
+Sign a message with base64 output:
+.PP
+.nf
+.RS
+sol-sign -keypair ~/.config/solana/id.json -message "Hello World"
+.RE
+.fi
+.PP
+Sign a message with hex output:
+.PP
+.nf
+.RS
+sol-sign -keypair ./keypair.json -message "Test" -format hex
+.RE
+.fi
+.SH EXIT STATUS
+.TP
+0
+Success
+.TP
+1
+Error occurred
+.SH AUTHOR
+Aryamanraj <your-email@example.com>
+.SH SEE ALSO
+.BR solana-keygen (1)
