@@ -64,7 +64,7 @@ jobs:
     - name: Build release
       run: |
         chmod +x build-release.sh
-        ./build-release.sh
+        ./build-release.sh ${{ steps.version.outputs.VERSION }}
     
     - name: Create Release
       uses: softprops/action-gh-release@v2
