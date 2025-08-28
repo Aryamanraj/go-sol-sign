@@ -210,6 +210,22 @@ go mod tidy
 go test ./...
 ```
 
+### Automated Releases
+We use automated version bumping for releases:
+
+```bash
+# For bug fixes (1.3.0 -> 1.3.1)
+./version-bump.sh patch
+
+# For new features (1.3.0 -> 1.4.0) 
+./version-bump.sh minor
+
+# For breaking changes (1.3.0 -> 2.0.0)
+./version-bump.sh major
+```
+
+See [WORKFLOW.md](WORKFLOW.md) for detailed development workflow.
+
 ## 📝 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
