@@ -5,8 +5,20 @@
 
 set -e
 
-VERSION="1.2.0"
 REPO="Aryamanraj/go-sol-sign"
+
+# Function to get latest version from GitHub API
+get_latest_version() {
+    curl -s "https://api.github.com/repos/${REPO}/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/' | sed 's/v//'
+}
+
+# Get latest version dynamically
+VERSION=$(get_latest_version)
+if [[ -z "$VERSION" ]]; then
+    echo "❌ Failed to fetch latest version. Using fallback version 1.2.0"
+    VERSION="1.2.0"
+fi
+
 BASE_URL="https://github.com/${REPO}/releases/download/v${VERSION}"
 
 # Parse command line arguments
