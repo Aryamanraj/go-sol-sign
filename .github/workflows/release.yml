@@ -7,6 +7,11 @@ on:
   pull_request:
     branches: [ main, master ]
 
+permissions:
+  contents: write
+  actions: read
+  security-events: write
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -36,57 +41,13 @@ jobs:
     - name: Run staticcheck
       run: staticcheck ./...
 
-  auto-update-version:
+  build:
     needs: test
     runs-on: ubuntu-latest
     if: startsWith(github.ref, 'refs/tags/')
     
     steps:
     - uses: actions/checkout@v4
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        fetch-depth: 0
-    
-    - name: Get version
-      id: version
-      run: |
-        VERSION=${GITHUB_REF#refs/tags/v}
-        echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
-        echo "TAG=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-    
-    - name: Update version in files
-      run: |
-        VERSION="${{ steps.version.outputs.VERSION }}"
-        
-        # Update main.go
-        sed -i "s/Version = \".*\"/Version = \"$VERSION\"/" main.go
-        
-        # Update build-release.sh
-        sed -i "s/VERSION=\".*\"/VERSION=\"$VERSION\"/" build-release.sh
-        
-        # Update install.sh
-        sed -i "s/VERSION=\".*\"/VERSION=\"$VERSION\"/" install.sh
-        
-        echo "Updated version to $VERSION in all files"
-    
-    - name: Commit version updates
-      run: |
-        git config --local user.email "action@github.com"
-        git config --local user.name "GitHub Action"
-        git add main.go build-release.sh install.sh
-        git diff --staged --quiet || git commit -m "chore: auto-update version to ${{ steps.version.outputs.VERSION }}"
-        git push origin HEAD:main
-      continue-on-error: true
-
-  build:
-    needs: [test, auto-update-version]
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
-    
-    steps:
-    - uses: actions/checkout@v4
-      with:
-        ref: main  # Get the updated files from auto-update-version job
     
     - name: Set up Go
       uses: actions/setup-go@v4
@@ -106,7 +67,7 @@ jobs:
         ./build-release.sh
     
     - name: Create Release
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@v2
       with:
         files: |
           dist/*.tar.gz
@@ -164,5 +125,4 @@ jobs:
           sha256sum -c checksums.txt
           ```
         generate_release_notes: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.GITHUB_TOKEN }}
