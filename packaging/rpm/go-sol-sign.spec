@@ -1,5 +1,5 @@
 Name:           go-sol-sign
-Version:        1.0.0
+Version:        1.2.0
 Release:        1%{?dist}
 Summary:        Command-line tool for signing messages with Solana keypairs
 
