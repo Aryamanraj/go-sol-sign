@@ -9,6 +9,39 @@ VERSION="1.0.0"
 REPO="Aryamanraj/go-sol-sign"
 BASE_URL="https://github.com/${REPO}/releases/download/v${VERSION}"
 
+# Parse command line arguments
+FORCE_INSTALL=false
+SHOW_HELP=false
+for arg in "$@"; do
+    case $arg in
+        --force|-f)
+            FORCE_INSTALL=true
+            shift
+            ;;
+        --help|-h)
+            SHOW_HELP=true
+            shift
+            ;;
+    esac
+done
+
+# Show help if requested
+if [[ "$SHOW_HELP" == "true" ]]; then
+    echo "Universal installer for go-sol-sign"
+    echo ""
+    echo "Usage:"
+    echo "  curl -fsSL https://raw.githubusercontent.com/Aryamanraj/go-sol-sign/main/install.sh | bash"
+    echo "  curl -fsSL https://raw.githubusercontent.com/Aryamanraj/go-sol-sign/main/install.sh | bash -s -- --force"
+    echo ""
+    echo "Options:"
+    echo "  --force, -f    Force installation without prompts"
+    echo "  --help, -h     Show this help message"
+    echo ""
+    echo "The installer automatically detects your OS and architecture,"
+    echo "downloads the appropriate binary, and installs it to /usr/local/bin"
+    exit 0
+fi
+
 # Colors for output
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -145,21 +178,35 @@ if command -v go-sol-sign >/dev/null 2>&1; then
     echo -e "${YELLOW}go-sol-sign is already installed (version: $current_version)${NC}"
     echo -e "${YELLOW}This will update it to version v${VERSION}${NC}"
     echo ""
-    read -p "Continue? (y/N): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        echo "Installation cancelled."
-        exit 0
+    
+    if [[ "$FORCE_INSTALL" == "true" ]]; then
+        echo -e "${BLUE}Force install enabled, proceeding...${NC}"
+    elif [[ ! -t 0 ]]; then
+        echo -e "${BLUE}Non-interactive mode detected, proceeding with installation...${NC}"
+    else
+        read -p "Continue? (y/N): " -n 1 -r
+        echo
+        if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+            echo "Installation cancelled."
+            exit 0
+        fi
     fi
 # Also check for old sol-sign installation and offer to remove it
 elif command -v sol-sign >/dev/null 2>&1; then
     echo -e "${YELLOW}Found old 'sol-sign' installation${NC}"
     echo -e "${YELLOW}This installer will install the new 'go-sol-sign' binary${NC}"
     echo ""
-    read -p "Remove old 'sol-sign' and install 'go-sol-sign'? (y/N): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        echo -e "${BLUE}Removing old sol-sign...${NC}"
+    
+    if [[ "$FORCE_INSTALL" == "true" ]]; then
+        echo -e "${BLUE}Force install enabled, removing old sol-sign and installing go-sol-sign...${NC}"
+        if [[ -w "/usr/local/bin" ]]; then
+            rm -f /usr/local/bin/sol-sign
+        else
+            sudo rm -f /usr/local/bin/sol-sign
+        fi
+        echo -e "${GREEN}Old sol-sign removed${NC}"
+    elif [[ ! -t 0 ]]; then
+        echo -e "${BLUE}Non-interactive mode: automatically removing old sol-sign and installing go-sol-sign...${NC}"
         if [[ -w "/usr/local/bin" ]]; then
             rm -f /usr/local/bin/sol-sign
         else
@@ -167,8 +214,20 @@ elif command -v sol-sign >/dev/null 2>&1; then
         fi
         echo -e "${GREEN}Old sol-sign removed${NC}"
     else
-        echo "Installation cancelled."
-        exit 0
+        read -p "Remove old 'sol-sign' and install 'go-sol-sign'? (y/N): " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            echo -e "${BLUE}Removing old sol-sign...${NC}"
+            if [[ -w "/usr/local/bin" ]]; then
+                rm -f /usr/local/bin/sol-sign
+            else
+                sudo rm -f /usr/local/bin/sol-sign
+            fi
+            echo -e "${GREEN}Old sol-sign removed${NC}"
+        else
+            echo "Installation cancelled."
+            exit 0
+        fi
     fi
 fi
 
