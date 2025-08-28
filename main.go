@@ -18,7 +18,6 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -79,7 +78,7 @@ func main() {
 	if *message != "" {
 		messageText = *message
 	} else if *messageFile != "" {
-		data, err := ioutil.ReadFile(*messageFile)
+		data, err := os.ReadFile(*messageFile)
 		if err != nil {
 			log.Fatalf("Failed to read message file: %v", err)
 		}
@@ -92,7 +91,7 @@ func main() {
 
 	// Expand home directory if present for keypair path
 	if *keypairPath != "" {
-		if filepath.IsAbs(*keypairPath) == false && (*keypairPath)[0] == '~' {
+		if !filepath.IsAbs(*keypairPath) && (*keypairPath)[0] == '~' {
 			homeDir, err := os.UserHomeDir()
 			if err == nil {
 				*keypairPath = filepath.Join(homeDir, (*keypairPath)[1:])
@@ -187,7 +186,7 @@ func loadKeypairFromFile(path string) (ed25519.PrivateKey, error) {
 	}
 
 	// Read the keypair file
-	data, err := ioutil.ReadFile(path)
+	data, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read keypair file: %w", err)
 	}
